@@ -27,7 +27,7 @@
  * Edit the variables as per your project requirements.
  */
 
-var project              = 'WPGulpTheme'; // Project Name.
+var project              = 'MatsudaTheme'; // Project Name.
 var projectURL           = 'matsuda.dev:8080'; // Project URL. Could be something like localhost:8888.
 var productURL           = './'; // Theme/Plugin URL. Leave it like it is, since our gulpfile.js lives in the root folder.
 
