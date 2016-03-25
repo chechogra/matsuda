@@ -86,7 +86,7 @@ var gulp         = require('gulp'); // Gulp of-course
 
 // CSS related plugins.
 var sass         = require('gulp-sass'); // Gulp pluign for Sass compilation.
-var minifycss    = require('gulp-uglifycss'); // Minifies CSS files.
+var cssnano    = require('gulp-cssnano'); // Minifies CSS files.
 var autoprefixer = require('gulp-autoprefixer'); // Autoprefixing magic.
 var mmq          = require('gulp-merge-media-queries'); // Combine matching media queries into one media query definition.
 
@@ -178,9 +178,7 @@ gulp.task('styles', function () {
 		.pipe(mmq({ log: true })) // Merge Media Queries only for .min.css version.
 
 		.pipe( rename( { suffix: '.min' } ) )
-		.pipe( minifycss( {
-			maxLineLen: 10
-		}))
+		.pipe( cssnano())
 		.pipe( gulp.dest( styleDestination ) )
 		.pipe( browserSync.stream() )
 		.pipe( notify( { message: 'TASK: "styles" Completed!', onLast: true } ) )
