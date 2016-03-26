@@ -43,4 +43,25 @@
 	    @include r(1280) { text-transform: uppercase; }
 
 	}
+
+}
+
+/* WORKFLOW TOOLS TEST */
+
+.test{
+  background: linear-gradient(to top, black, white);
+  display: flex
+}
+
+/* custom properties */
+:root {
+  --heading-color: #ff0000;
+}
+
+/* custom selectors */
+@custom-selector :--headings h1, h2, h3, h4, h5, h6;
+
+/* usage */
+:--headings {
+  color: var(--heading-color);
 }

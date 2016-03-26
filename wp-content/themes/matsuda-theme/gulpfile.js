@@ -86,9 +86,12 @@ var gulp         = require('gulp'); // Gulp of-course
 
 // CSS related plugins.
 var sass         = require('gulp-sass'); // Gulp pluign for Sass compilation.
-var cssnano    = require('gulp-cssnano'); // Minifies CSS files.
-var autoprefixer = require('gulp-autoprefixer'); // Autoprefixing magic.
-var mmq          = require('gulp-merge-media-queries'); // Combine matching media queries into one media query definition.
+var postcss      = require('gulp-postcss');
+//var autoprefixer = require('autoprefixer'); // Autoprefixing magic.
+var cssnext      = require('postcss-cssnext');
+var mqpacker     = require('css-mqpacker');
+var comments     = require('postcss-discard-comments');
+var cssnano      = require('cssnano'); // Minifies CSS files.
 
 // JS related plugins.
 var concat       = require('gulp-concat'); // Concatenates JS files
@@ -156,6 +159,17 @@ var reload       = browserSync.reload; // For manual browser reload.
  */
 gulp.task('styles', function () {
 
+  var processors = [
+    //autoprefixer({browsers: AUTOPREFIXER_BROWSERS}),
+    cssnext,
+    mqpacker
+  ];
+
+  var processorsMin = [
+    //comments({removeAllButFirst: true}),
+    cssnano()
+  ];
+
  	gulp.src( styleSRC )
 		.pipe( sourcemaps.init() )
 		.pipe( sass( {
@@ -167,18 +181,11 @@ gulp.task('styles', function () {
 			precision: 10
 		} ) )
 		.on('error', console.error.bind(console))
-		.pipe( sourcemaps.write( { includeContent: false } ) )
-		.pipe( sourcemaps.init( { loadMaps: true } ) )
-		.pipe( autoprefixer( AUTOPREFIXER_BROWSERS ) )
-
-		.pipe( sourcemaps.write ( styleDestination ) )
-		.pipe( gulp.dest( styleDestination ) )
-
-		.pipe(filter('**/*.css')) // Filtering stream to only css files
-		.pipe(mmq({ log: true })) // Merge Media Queries only for .min.css version.
-
+    .pipe(postcss(processors))
+    .pipe( gulp.dest( styleDestination ) )
 		.pipe( rename( { suffix: '.min' } ) )
-		.pipe( cssnano())
+    .pipe(postcss(processorsMin))
+    .pipe( sourcemaps.write(styleDestination) )
 		.pipe( gulp.dest( styleDestination ) )
 		.pipe( browserSync.stream() )
 		.pipe( notify( { message: 'TASK: "styles" Completed!', onLast: true } ) )
