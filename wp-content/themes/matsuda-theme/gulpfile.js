@@ -59,6 +59,8 @@ var vendorJSWatchFiles   = './assets/js/vendors/*.js'; // Path to all vendors JS
 var customJSWatchFiles   = './assets/js/custom/*.js'; // Path to all custom JS files.
 var projectPHPWatchFiles = './**/*.php'; // Path to all PHP files.
 
+var eslintErrorOccured   = false;
+
 
 // Browsers you care about for autoprefixing.
 // Browserlist https://github.com/ai/browserslist
@@ -110,6 +112,7 @@ var notify       = require('gulp-notify'); // Sends message notification to you
 var browserSync  = require('browser-sync').create(); // Reloads browser and injects CSS. Time-saving synchronised browser testing.
 var reload       = browserSync.reload; // For manual browser reload.
 var plumber      = require('gulp-plumber');
+var gutil        = require("gulp-util");
 
 
 /**
@@ -219,7 +222,6 @@ gulp.task( 'vendorsJs', function() {
 		.pipe( notify( { message: 'TASK: "vendorsJs" Completed!', onLast: true } ) );
 });
 
-
 /**
  * Task: `customJS`.
  *
@@ -232,17 +234,26 @@ gulp.task( 'vendorsJs', function() {
  * 		4. Uglifes/Minifies the JS file and generates custom.min.js
  */
 gulp.task( 'customJS', ['lint'], function() {
- 	gulp.src( jsCustomSRC )
-		.pipe( concat( jsCustomFile + '.js' ) )
-		.pipe( gulp.dest( jsCustomDestination ) )
-		.pipe( rename( {
-			basename: jsCustomFile,
-			suffix: '.min'
-		}))
-		.pipe( uglify() )
-		.pipe( gulp.dest( jsCustomDestination ) )
-		.pipe( notify( { message: 'TASK: "customJs" Completed!', onLast: true } ) );
+
+  if (eslintErrorOccured) {
+    eslintErrorOccured = false;
+  }else{
+    gulp.src( jsCustomSRC )
+      .pipe( concat( jsCustomFile + '.js' ) )
+      .pipe( gulp.dest( jsCustomDestination ) )
+      .pipe( rename( {
+        basename: jsCustomFile,
+        suffix: '.min'
+      }))
+      .pipe( uglify() )
+      .pipe( gulp.dest( jsCustomDestination ) )
+      .pipe( notify( { message: 'TASK: "customJs" Completed!', onLast: true } ) );
+  }
+
 });
+
+
+
 
 /**
  * Task: `lint`.
@@ -254,6 +265,16 @@ gulp.task('lint', function () {
     // eslint() attaches the lint output to the "eslint" property
     // of the file object so it can be used by other modules.
     .pipe(eslint())
+    .pipe(plumber({
+      errorHandler: function (err) {
+        eslintErrorOccured = true;
+        notify.onError({
+          title:    "Eslint Error",
+          message:  "Error: <%= error.message %>"
+        })(err);
+        this.emit('end');
+      }
+    }))
     .pipe(eslint.results(function (results) {
       // Called once for all ESLint results.
       console.log('Total Results: ' + results.length);
@@ -261,13 +282,14 @@ gulp.task('lint', function () {
       console.log('Total Errors: ' + results.errorCount);
 
       if(results.errorCount){
-        this.emit("error", new Error("Something happend: Error message!"))
+        throw new gutil.PluginError({
+          plugin: eslint,
+          message: 'Something happend: Error message!'
+        });
       }
 
     }))
-    .on("error", notify.onError(function (error) {
-      return "Message to the notifier: " + error.message;
-    }))
+
     // eslint.format() outputs the lint results to the console.
     // Alternatively use eslint.formatEach() (see Docs).
     .pipe(eslint.format(friendlyFormatter))
