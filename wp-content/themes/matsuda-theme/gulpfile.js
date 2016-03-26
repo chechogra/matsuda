@@ -96,6 +96,8 @@ var cssnano      = require('cssnano'); // Minifies CSS files.
 // JS related plugins.
 var concat       = require('gulp-concat'); // Concatenates JS files
 var uglify       = require('gulp-uglify'); // Minifies JS files
+var eslint       = require('gulp-eslint');
+var friendlyFormatter = require("eslint-friendly-formatter");
 
 // Image realted plugins.
 var imagemin     = require('gulp-imagemin'); // Minify PNG, JPEG, GIF and SVG images with imagemin.
@@ -228,7 +230,7 @@ gulp.task( 'vendorsJs', function() {
  * 		3. Renames the JS file with suffix .min.js
  * 		4. Uglifes/Minifies the JS file and generates custom.min.js
  */
-gulp.task( 'customJS', function() {
+gulp.task( 'customJS', ['lint'], function() {
  	gulp.src( jsCustomSRC )
 		.pipe( concat( jsCustomFile + '.js' ) )
 		.pipe( gulp.dest( jsCustomDestination ) )
@@ -239,6 +241,24 @@ gulp.task( 'customJS', function() {
 		.pipe( uglify() )
 		.pipe( gulp.dest( jsCustomDestination ) )
 		.pipe( notify( { message: 'TASK: "customJs" Completed!', onLast: true } ) );
+});
+
+/**
+ * Task: `lint`.
+ *
+ * Custom JS scripts linter.
+ */
+gulp.task('lint', function () {
+  return gulp.src([jsCustomSRC])
+    // eslint() attaches the lint output to the "eslint" property
+    // of the file object so it can be used by other modules.
+    .pipe(eslint())
+    // eslint.format() outputs the lint results to the console.
+    // Alternatively use eslint.formatEach() (see Docs).
+    .pipe(eslint.format(friendlyFormatter))
+    // To have the process exit with an error code (1) on
+    // lint error, return the stream and pipe to failAfterError last.
+    .pipe(eslint.failAfterError());
 });
 
 
