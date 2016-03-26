@@ -109,6 +109,7 @@ var sourcemaps   = require('gulp-sourcemaps'); // Maps code in a compressed file
 var notify       = require('gulp-notify'); // Sends message notification to you
 var browserSync  = require('browser-sync').create(); // Reloads browser and injects CSS. Time-saving synchronised browser testing.
 var reload       = browserSync.reload; // For manual browser reload.
+var plumber      = require('gulp-plumber');
 
 
 /**
@@ -253,6 +254,20 @@ gulp.task('lint', function () {
     // eslint() attaches the lint output to the "eslint" property
     // of the file object so it can be used by other modules.
     .pipe(eslint())
+    .pipe(eslint.results(function (results) {
+      // Called once for all ESLint results.
+      console.log('Total Results: ' + results.length);
+      console.log('Total Warnings: ' + results.warningCount);
+      console.log('Total Errors: ' + results.errorCount);
+
+      if(results.errorCount){
+        this.emit("error", new Error("Something happend: Error message!"))
+      }
+
+    }))
+    .on("error", notify.onError(function (error) {
+      return "Message to the notifier: " + error.message;
+    }))
     // eslint.format() outputs the lint results to the console.
     // Alternatively use eslint.formatEach() (see Docs).
     .pipe(eslint.format(friendlyFormatter))
